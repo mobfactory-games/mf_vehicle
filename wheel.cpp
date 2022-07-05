@@ -276,7 +276,7 @@ void mf_vehicle_wheel::_notification(int p_what) {
                     break;
 
                 body = cb;
-                body->wheels.push_back(this);
+                body->wheel_data.push_back(this);
             }
         break;
 
@@ -285,7 +285,7 @@ void mf_vehicle_wheel::_notification(int p_what) {
                 if (body == nullptr)
                     break;
 
-                body->wheels.erase(this);
+                body->wheel_data.erase(this);
                 body = nullptr;
             }
         break;

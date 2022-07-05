@@ -18,8 +18,8 @@ mf_vehicle_body::mf_vehicle_body(void) {
     susp_comp.push_back(real_t(0.5));
     susp_comp.push_back(real_t(0.5));
 
-    if (wheels.empty() != true)
-        wheel_radius = wheels[0]->tire_radius;
+    if (wheel_data.empty() != true)
+        wheel_radius = wheel_data[int(wheel_list["wheel_front_left"])]->tire_radius;
     fuel = fuel_tank_size * fuel_percentage * real_t(0.01);
     mass += fuel * PETROL_KG_L;
 }
@@ -47,13 +47,13 @@ void mf_vehicle_body::physics_process(real_t delta, Dictionary surface) {
     drag_force();
 
     // Anti-rollbar
-    if (wheels.empty() == false) {
+    if (wheel_data.empty() == false) {
         if (surface.empty() == false) {
             Array prev_comp = Array(susp_comp);
-            susp_comp[2] = wheels[2]->apply_forces(prev_comp[3], delta, surface["rear_left"]);
-            susp_comp[3] = wheels[3]->apply_forces(prev_comp[2], delta, surface["rear_right"]);
-            susp_comp[0] = wheels[0]->apply_forces(prev_comp[1], delta, surface["front_right"]);
-            susp_comp[1] = wheels[1]->apply_forces(prev_comp[0], delta, surface["front_left"]);
+            susp_comp[int(wheel_list["wheel_rear_left"])] = wheel_data[int(wheel_list["wheel_rear_left"])]->apply_forces(prev_comp[int(wheel_list["wheel_rear_left"])], delta, surface["rear_left"]);
+            susp_comp[int(wheel_list["wheel_rear_right"])] = wheel_data[int(wheel_list["wheel_rear_right"])]->apply_forces(prev_comp[int(wheel_list["wheel_rear_right"])], delta, surface["rear_right"]);
+            susp_comp[int(wheel_list["wheel_front_right"])] = wheel_data[int(wheel_list["wheel_front_right"])]->apply_forces(prev_comp[int(wheel_list["wheel_front_right"])], delta, surface["front_right"]);
+            susp_comp[int(wheel_list["wheel_front_left"])] = wheel_data[int(wheel_list["wheel_front_left"])]->apply_forces(prev_comp[int(wheel_list["wheel_front_left"])], delta, surface["front_left"]);
         }
     }
 
@@ -68,8 +68,8 @@ void mf_vehicle_body::physics_process(real_t delta, Dictionary surface) {
             steering_amount = steering_input;
     }
 
-    wheels[1]->steer(steering_amount, max_steer);
-    wheels[0]->steer(steering_amount, max_steer);
+    wheel_data[int(wheel_list["wheel_front_left"])]->steer(steering_amount, max_steer);
+    wheel_data[int(wheel_list["wheel_front_right"])]->steer(steering_amount, max_steer);
 
     // Engine loop
     drag_torque = engine_brake + rpm + engine_drag;
@@ -113,11 +113,11 @@ real_t mf_vehicle_body::engine_torque(real_t r_p_m) {
 void mf_vehicle_body::freewheel(real_t delta) {
     clutch_reaction_torque = real_t(0);
     avg_front_spin = real_t(0);
-    wheels[2]->apply_torque(real_t(0), real_t(0), rear_brake_force, delta);
-    wheels[3]->apply_torque(real_t(0), real_t(0), rear_brake_force, delta);
-    wheels[1]->apply_torque(real_t(0), real_t(0), front_brake_force, delta);
-    wheels[0]->apply_torque(real_t(0), real_t(0), front_brake_force, delta);
-    avg_front_spin += (wheels[0]->spin + wheels[1]->spin) * real_t(0.5);
+    wheel_data[int(wheel_list["wheel_rear_left"])]->apply_torque(real_t(0), real_t(0), rear_brake_force, delta);
+    wheel_data[int(wheel_list["wheel_rear_right"])]->apply_torque(real_t(0), real_t(0), rear_brake_force, delta);
+    wheel_data[int(wheel_list["wheel_front_left"])]->apply_torque(real_t(0), real_t(0), front_brake_force, delta);
+    wheel_data[int(wheel_list["wheel_front_right"])]->apply_torque(real_t(0), real_t(0), front_brake_force, delta);
+    avg_front_spin += (wheel_data[int(wheel_list["wheel_front_left"])]->spin + wheel_data[int(wheel_list["wheel_front_right"])]->spin) * real_t(0.5);
     speedo = avg_front_spin * wheel_radius * real_t(3.6);
 }
 
@@ -125,8 +125,8 @@ void mf_vehicle_body::engage(real_t delta) {
     avg_rear_spin = real_t(0);
     avg_front_spin = real_t(0);
 
-    avg_rear_spin += (wheels[2]->spin + wheels[3]->spin) * real_t(0.5);
-    avg_front_spin += (wheels[0]->spin + wheels[1]->spin) * real_t(0.5);
+    avg_rear_spin += (wheel_data[int(wheel_list["wheel_rear_left"])]->spin + wheel_data[int(wheel_list["wheel_rear_right"])]->spin) * real_t(0.5);
+    avg_front_spin += (wheel_data[int(wheel_list["wheel_front_left"])]->spin + wheel_data[int(wheel_list["wheel_front_right"])]->spin) * real_t(0.5);
 
     real_t gearbox_shaft_speed = real_t(0);
 
@@ -151,14 +151,14 @@ void mf_vehicle_body::engage(real_t delta) {
 
     if (drivetype == RWD) {
         rear_wheel_drive(net_drive, delta);
-        wheels[0]->apply_torque(real_t(0), real_t(0), front_brake_force, delta);
-        wheels[1]->apply_torque(real_t(0), real_t(0), front_brake_force, delta);
+        wheel_data[int(wheel_list["wheel_front_left"])]->apply_torque(real_t(0), real_t(0), front_brake_force, delta);
+        wheel_data[int(wheel_list["wheel_front_right"])]->apply_torque(real_t(0), real_t(0), front_brake_force, delta);
     } else if (drivetype == AWD) {
         all_wheel_drive(net_drive, delta);
     } else if (drivetype == FWD) {
         front_wheel_drive(net_drive, delta);
-        wheels[2]->apply_torque(real_t(0), real_t(0), rear_brake_force, delta);
-        wheels[3]->apply_torque(real_t(0), real_t(0), rear_brake_force, delta);
+        wheel_data[int(wheel_list["wheel_rear_left"])]->apply_torque(real_t(0), real_t(0), rear_brake_force, delta);
+        wheel_data[int(wheel_list["wheel_rear_right"])]->apply_torque(real_t(0), real_t(0), rear_brake_force, delta);
     }
 
     speedo = avg_front_spin * wheel_radius * real_t(3.6);
@@ -175,7 +175,8 @@ real_t mf_vehicle_body::gear_ratio(void) {
 
 void mf_vehicle_body::rear_wheel_drive(real_t drive, real_t delta) {
     bool diff_locked = true;
-    real_t t_error = wheels[2]->force_vec.y * wheels[2]->tire_radius - wheels[3]->force_vec.y * wheels[3]->tire_radius;
+    real_t t_error = wheel_data[int(wheel_list["wheel_rear_left"])]->force_vec.y * wheel_data[int(wheel_list["wheel_rear_left"])]->tire_radius
+                    - wheel_data[int(wheel_list["wheel_rear_right"])]->force_vec.y * wheel_data[int(wheel_list["wheel_rear_right"])]->tire_radius;
 
     if (drive * signum(gear_ratio()) > 0) {
         if (Math::abs(t_error) > rear_diff_preload * rear_diff_power_ratio)
@@ -193,36 +194,38 @@ void mf_vehicle_body::rear_wheel_drive(real_t drive, real_t delta) {
     if (diff_locked == false) {
         real_t diff_sum = real_t(0);
 
-        diff_sum -= wheels[3]->apply_torque(drive * (real_t(1) - r_split), drive_inertia, rear_brake_force, delta);
-        diff_sum += wheels[2]->apply_torque(drive * r_split, drive_inertia, rear_brake_force, delta);
+        diff_sum -= wheel_data[int(wheel_list["wheel_rear_right"])]->apply_torque(drive * (real_t(1) - r_split), drive_inertia, rear_brake_force, delta);
+        diff_sum += wheel_data[int(wheel_list["wheel_rear_left"])]->apply_torque(drive * r_split, drive_inertia, rear_brake_force, delta);
 
         r_split = real_t(0.5) * (std::clamp(diff_sum, real_t(-1), real_t(1)) + real_t(1));
     } else {
         r_split = real_t(0.5);
         // initialize net_torque with previous frames friction
-        real_t net_torque = (wheels[2]->force_vec.y * wheels[2]->tire_radius + wheels[3]->force_vec.y * wheels[3]->tire_radius);
+        real_t net_torque = (wheel_data[int(wheel_list["wheel_rear_left"])]->force_vec.y * wheel_data[int(wheel_list["wheel_rear_left"])]->tire_radius
+                            + wheel_data[int(wheel_list["wheel_rear_right"])]->force_vec.y * wheel_data[int(wheel_list["wheel_rear_right"])]->tire_radius);
         net_torque += drive;
         real_t axle_spin = real_t(0);
         // stop wheel if brakes overwhelm other forces
         if (avg_rear_spin < 5 && rear_brake_force > Math::abs(net_torque))
             axle_spin = real_t(0);
         else {
-            real_t f_rr = (wheels[2]->rolling_resistance + wheels[3]->rolling_resistance);
+            real_t f_rr = (wheel_data[int(wheel_list["wheel_rear_left"])]->rolling_resistance + wheel_data[int(wheel_list["wheel_rear_right"])]->rolling_resistance);
             net_torque -= (real_t(2) * rear_brake_force + f_rr) * signum(avg_rear_spin);
-            axle_spin = avg_rear_spin + (delta * net_torque / (wheels[2]->wheel_moment + drive_inertia + wheels[3]->wheel_moment));
+            axle_spin = avg_rear_spin + (delta * net_torque / (wheel_data[int(wheel_list["wheel_rear_left"])]->wheel_moment
+                        + drive_inertia + wheel_data[int(wheel_list["wheel_rear_right"])]->wheel_moment));
         }
 
-        wheels[2]->apply_solid_axle_spin(axle_spin);
-        wheels[3]->apply_solid_axle_spin(axle_spin);
+        wheel_data[int(wheel_list["wheel_rear_right"])]->apply_solid_axle_spin(axle_spin);
+        wheel_data[int(wheel_list["wheel_rear_left"])]->apply_solid_axle_spin(axle_spin);
     }
 }
 
 // We'll probably rewrite these functions instead of repeating code except for front
-// wheel versus rear wheel.  Since we're using a vector for the wheels instead of
+// wheel versus rear wheel.  Since we're using a vector for the wheel_data instead of
 // having four variables for each, this should make it easier.
 void mf_vehicle_body::front_wheel_drive(real_t drive, real_t delta) {
     bool diff_locked = true;
-    real_t t_error = wheels[0]->force_vec.y * wheels[0]->tire_radius - wheels[1]->force_vec.y * wheels[1]->tire_radius;
+    real_t t_error = wheel_data[int(wheel_list["wheel_front_left"])]->force_vec.y * wheel_data[int(wheel_list["wheel_front_left"])]->tire_radius - wheel_data[int(wheel_list["wheel_front_right"])]->force_vec.y * wheel_data[int(wheel_list["wheel_front_right"])]->tire_radius;
 
     if (drive * signum(gear_ratio()) > 0) { // we are powering
         if (Math::abs(t_error) > front_diff_preload * front_diff_power_ratio)
@@ -241,26 +244,26 @@ void mf_vehicle_body::front_wheel_drive(real_t drive, real_t delta) {
     if (diff_locked == false) {
         real_t diff_sum = real_t(0);
 
-        diff_sum -= wheels[0]->apply_torque(drive * (real_t(1) - f_split), drive_inertia, front_brake_force, delta);
-        diff_sum += wheels[1]->apply_torque(drive * f_split, drive_inertia, front_brake_force, delta);
+        diff_sum -= wheel_data[int(wheel_list["wheel_front_left"])]->apply_torque(drive * (real_t(1) - f_split), drive_inertia, front_brake_force, delta);
+        diff_sum += wheel_data[int(wheel_list["wheel_front_right"])]->apply_torque(drive * f_split, drive_inertia, front_brake_force, delta);
 
         f_split = real_t(0.5) * (std::clamp(diff_sum, real_t(-1), real_t(1)) +1);
     } else {
         f_split = real_t(0.5);
 
-        real_t net_torque = (wheels[1]->force_vec.y * wheels[1]->tire_radius + wheels[0]->force_vec.y * wheels[0]->tire_radius);
+        real_t net_torque = (wheel_data[int(wheel_list["wheel_front_right"])]->force_vec.y * wheel_data[int(wheel_list["wheel_front_right"])]->tire_radius + wheel_data[int(wheel_list["wheel_front_left"])]->force_vec.y * wheel_data[int(wheel_list["wheel_front_left"])]->tire_radius);
         net_torque += drive;
         real_t axle_spin = real_t(0);
         if (avg_front_spin < 5 && front_brake_force > Math::abs(net_torque))
             axle_spin = real_t(0);
         else {
-            real_t f_rr = (wheels[0]->rolling_resistance + wheels[1]->rolling_resistance);
+            real_t f_rr = (wheel_data[int(wheel_list["wheel_front_left"])]->rolling_resistance + wheel_data[int(wheel_list["wheel_front_right"])]->rolling_resistance);
             net_torque -= (real_t(2) * front_brake_force + f_rr) * signum(avg_front_spin);
-            axle_spin = avg_front_spin + (delta * net_torque / wheels[1]->wheel_moment + drive_inertia + wheels[0]->wheel_moment);
+            axle_spin = avg_front_spin + (delta * net_torque / wheel_data[int(wheel_list["wheel_front_right"])]->wheel_moment + drive_inertia + wheel_data[int(wheel_list["wheel_front_left"])]->wheel_moment);
         }
 
-        wheels[0]->apply_solid_axle_spin(axle_spin);
-        wheels[1]->apply_solid_axle_spin(axle_spin);
+        wheel_data[int(wheel_list["wheel_front_left"])]->apply_solid_axle_spin(axle_spin);
+        wheel_data[int(wheel_list["wheel_front_right"])]->apply_solid_axle_spin(axle_spin);
     }
 }
 
@@ -271,8 +274,8 @@ void mf_vehicle_body::all_wheel_drive(real_t drive, real_t delta) {
     bool front_diff_locked = true;
     bool rear_diff_locked = true;
 
-    real_t front_t_error = wheels[0]->force_vec.y * wheels[0]->tire_radius - wheels[1]->force_vec.y * wheels[1]->tire_radius;
-    real_t rear_t_error = wheels[2]->force_vec.y * wheels[2]->tire_radius - wheels[3]->force_vec.y * wheels[3]->tire_radius;
+    real_t front_t_error = wheel_data[int(wheel_list["wheel_front_left"])]->force_vec.y * wheel_data[int(wheel_list["wheel_front_left"])]->tire_radius - wheel_data[int(wheel_list["wheel_front_right"])]->force_vec.y * wheel_data[int(wheel_list["wheel_front_right"])]->tire_radius;
+    real_t rear_t_error = wheel_data[int(wheel_list["wheel_rear_left"])]->force_vec.y * wheel_data[int(wheel_list["wheel_rear_left"])]->tire_radius - wheel_data[int(wheel_list["wheel_rear_right"])]->force_vec.y * wheel_data[int(wheel_list["wheel_rear_right"])]->tire_radius;
 
     if (drive * signum(gear_ratio()) > 0) {
         if (Math::abs(rear_t_error) > rear_diff_preload * rear_diff_power_ratio)
@@ -298,52 +301,52 @@ void mf_vehicle_body::all_wheel_drive(real_t drive, real_t delta) {
     if (rear_diff_locked == false) {
         real_t rear_diff_sum = real_t(0);
 
-        rear_diff_sum -= wheels[2]->apply_torque(rear_drive * (real_t(1) - r_split), drive_inertia, rear_brake_force, delta);
-        rear_diff_sum += wheels[3]->apply_torque(rear_drive * r_split, drive_inertia, rear_brake_force, delta);
+        rear_diff_sum -= wheel_data[int(wheel_list["wheel_rear_left"])]->apply_torque(rear_drive * (real_t(1) - r_split), drive_inertia, rear_brake_force, delta);
+        rear_diff_sum += wheel_data[int(wheel_list["wheel_rear_right"])]->apply_torque(rear_drive * r_split, drive_inertia, rear_brake_force, delta);
 
         r_split = real_t(0.5) * (std::clamp(rear_diff_sum, real_t(-1), real_t(1)));
     } else {
         r_split = real_t(0.5);
 
-        real_t net_torque = (wheels[2]->force_vec.y * wheels[2]->tire_radius + wheels[3]->force_vec.y * wheels[3]->tire_radius);
+        real_t net_torque = (wheel_data[int(wheel_list["wheel_rear_left"])]->force_vec.y * wheel_data[int(wheel_list["wheel_rear_left"])]->tire_radius + wheel_data[int(wheel_list["wheel_rear_right"])]->force_vec.y * wheel_data[int(wheel_list["wheel_rear_right"])]->tire_radius);
         net_torque += rear_drive;
         real_t axle_spin = real_t(0);
         if (avg_rear_spin < 5 && rear_brake_force > Math::abs(net_torque))
             axle_spin = real_t(0);
         else {
-            real_t f_rr = (wheels[2]->rolling_resistance + wheels[3]->rolling_resistance);
+            real_t f_rr = (wheel_data[int(wheel_list["wheel_rear_left"])]->rolling_resistance + wheel_data[int(wheel_list["wheel_rear_right"])]->rolling_resistance);
             net_torque -= (real_t(2) * rear_brake_force + f_rr) * signum(avg_rear_spin);
-            axle_spin = avg_rear_spin + (delta * net_torque / (wheels[2]->wheel_moment + drive_inertia + wheels[3]->wheel_moment));
+            axle_spin = avg_rear_spin + (delta * net_torque / (wheel_data[int(wheel_list["wheel_rear_left"])]->wheel_moment + drive_inertia + wheel_data[int(wheel_list["wheel_rear_right"])]->wheel_moment));
         }
 
-        wheels[2]->apply_solid_axle_spin(axle_spin);
-        wheels[3]->apply_solid_axle_spin(axle_spin);
+        wheel_data[int(wheel_list["wheel_rear_left"])]->apply_solid_axle_spin(axle_spin);
+        wheel_data[int(wheel_list["wheel_rear_right"])]->apply_solid_axle_spin(axle_spin);
     }
 
     if (front_diff_locked == false) {
         real_t front_diff_sum = real_t(0);
 
-        front_diff_sum -= wheels[0]->apply_torque(front_drive * (real_t(1) - f_split), drive_inertia, front_brake_force, delta);
-        front_diff_sum += wheels[1]->apply_torque(front_drive * f_split, drive_inertia, front_brake_force, delta);
+        front_diff_sum -= wheel_data[int(wheel_list["wheel_front_left"])]->apply_torque(front_drive * (real_t(1) - f_split), drive_inertia, front_brake_force, delta);
+        front_diff_sum += wheel_data[int(wheel_list["wheel_front_right"])]->apply_torque(front_drive * f_split, drive_inertia, front_brake_force, delta);
 
         f_split = real_t(0.5) * (std::clamp(front_diff_sum, real_t(-1), real_t(1)) + real_t(1));
     } else {
         f_split = real_t(0.5);
 
-        real_t net_torque = (wheels[0]->force_vec.y * wheels[0]->tire_radius + wheels[1]->force_vec.y * wheels[1]->tire_radius);
+        real_t net_torque = (wheel_data[int(wheel_list["wheel_front_left"])]->force_vec.y * wheel_data[int(wheel_list["wheel_front_left"])]->tire_radius + wheel_data[int(wheel_list["wheel_front_right"])]->force_vec.y * wheel_data[int(wheel_list["wheel_front_right"])]->tire_radius);
         net_torque += front_drive;
         real_t axle_spin = real_t(0);
 
         if (avg_front_spin < 5 && front_brake_force > Math::abs(net_torque))
             axle_spin = real_t(0);
         else {
-            real_t f_rr = (wheels[0]->rolling_resistance + wheels[1]->rolling_resistance);
+            real_t f_rr = (wheel_data[int(wheel_list["wheel_front_left"])]->rolling_resistance + wheel_data[int(wheel_list["wheel_front_right"])]->rolling_resistance);
             net_torque -= (real_t(2) * front_brake_force + f_rr) * signum(avg_front_spin);
-            axle_spin = avg_front_spin + (delta * net_torque / (wheels[0]->wheel_moment + drive_inertia + wheels[1]->wheel_moment));
+            axle_spin = avg_front_spin + (delta * net_torque / (wheel_data[int(wheel_list["wheel_front_left"])]->wheel_moment + drive_inertia + wheel_data[int(wheel_list["wheel_front_right"])]->wheel_moment));
         }
 
-        wheels[0]->apply_solid_axle_spin(axle_spin);
-        wheels[1]->apply_solid_axle_spin(axle_spin);
+        wheel_data[int(wheel_list["wheel_front_left"])]->apply_solid_axle_spin(axle_spin);
+        wheel_data[int(wheel_list["wheel_front_right"])]->apply_solid_axle_spin(axle_spin);
     }
 }
 
@@ -391,6 +394,18 @@ void mf_vehicle_body::play_engine_sound(void) {
 
 void mf_vehicle_body::stop_engine_sound(void) {
     audioplayer.stop();
+}
+
+void mf_vehicle_body::_notification(int p_what) {
+    switch(p_what) {
+        case NOTIFICATION_ENTER_TREE:
+            for (int i = 0; i < wheel_data.size(); i++) {
+                wheel_list[wheel_data[i]->get_name()] = i;
+            }
+        break;
+        case NOTIFICATION_EXIT_TREE:
+        break;
+    }
 }
 
 void mf_vehicle_body::_bind_methods(void) {

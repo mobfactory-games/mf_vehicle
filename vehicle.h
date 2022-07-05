@@ -50,10 +50,11 @@ class mf_vehicle_body:public RigidBody {
 
         // wheels
         Dictionary wheel_list = Dictionary();
-        Array wheel_data = Array();
-        //Vector<ng_vehicle_wheel *> wheels;
+        //Array wheel_data = Array();
+        Vector<mf_vehicle_wheel *> wheel_data;
 
     protected:
+        void _notification(int p_what);
         static void _bind_methods(void);
 
     private:
