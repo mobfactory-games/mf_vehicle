@@ -1,0 +1,4 @@
+CompileFlags: # Tweak the parse settings
+  Add: 
+    - "-I=[/home/turncoat/godot/source/godot-3.4-stable/]"
+

@@ -1,0 +1,22 @@
+Import('env')
+
+sources = [
+    "register_types.cpp",
+    "math.cpp",
+    "vehicle.cpp",
+    "wheel.cpp"
+]
+
+module_env = env.Clone()
+module_env.Append(CCFLAGS=['-O2'])
+module_env.Append(CXXFLAGS=['-std=c++17'])
+
+if ARGUMENTS.get('modules_shared', 'no') == 'yes':
+    module_env.Append(CPPFLAGS=['-fPIC'])
+    module_env['LIBS']  = []
+    shared_lib = module_env.SharedLibrary(target='#bin/mf_vehicle', source=sources)
+    env.Append(LIBPATH=['#bin'])
+    shared_lib_shim = shared_lib[0].name.rsplit('.', 1)[0]
+    env.Append(LIBS=[shared_lib_shim])
+else:
+    env.add_source_files(env.modules_sources, sources)

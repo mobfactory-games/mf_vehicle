@@ -1,0 +1,2 @@
+-I/home/turncoat/godot/source/godot-3.4-stable/
+-std=c++17
