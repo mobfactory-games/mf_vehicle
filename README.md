@@ -27,9 +27,7 @@ Make sure the physics FPS is set to atleast 120 or the physics start to get weir
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE.md file for details. This project also contains models and textures owned by their authors. See links below for exact licenses.
-
-Engine sound sample found in /sounds folder is made with enginesound, available from https://github.com/DasEtwas/enginesound. The sound sample itself is licensed under cc0.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Acknowledgments
 
