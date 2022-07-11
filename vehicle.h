@@ -157,6 +157,7 @@ class mf_vehicle_body:public RigidBody {
     // We'll put our setters and getters here to help keep it easier to read the main
     // bulk of the class...
     public:
+        Dictionary get_wheel_list(void);
         void set_max_steer(real_t steering_amount);
         real_t get_max_steer(void);
         void set_front_brake_bias(real_t bias_amount);

@@ -276,7 +276,7 @@ void mf_vehicle_wheel::_notification(int p_what) {
                     break;
 
                 body = cb;
-                body->wheel_data.push_back(this);
+                cb->wheel_data.push_back(this);
             }
         break;
 

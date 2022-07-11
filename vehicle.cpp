@@ -5,6 +5,7 @@
  * fl = 1
  */
 
+#include <iostream>
 #include <algorithm>
 #include <core/class_db.h>
 
@@ -17,6 +18,9 @@ mf_vehicle_body::mf_vehicle_body(void) {
     susp_comp.push_back(real_t(0.5));
     susp_comp.push_back(real_t(0.5));
     susp_comp.push_back(real_t(0.5));
+
+    for (int i = 0; i < wheel_data.capacity(); i++)
+        wheel_list[wheel_data[i]->get_name()] = i;
 
     if (wheel_data.empty() != true)
         wheel_radius = wheel_data[int(wheel_list["wheel_front_left"])]->tire_radius;
@@ -370,7 +374,7 @@ void mf_vehicle_body::burn_fuel(real_t delta) {
 }
 
 void mf_vehicle_body::shift_up(void) {
-    if (selected_gear > gear_ratios.size())
+    if (selected_gear < gear_ratios.size())
         selected_gear += 1;
 }
 
@@ -399,9 +403,6 @@ void mf_vehicle_body::stop_engine_sound(void) {
 void mf_vehicle_body::_notification(int p_what) {
     switch(p_what) {
         case NOTIFICATION_ENTER_TREE:
-            for (int i = 0; i < wheel_data.size(); i++) {
-                wheel_list[wheel_data[i]->get_name()] = i;
-            }
         break;
         case NOTIFICATION_EXIT_TREE:
         break;
@@ -426,6 +427,7 @@ void mf_vehicle_body::_bind_methods(void) {
     ClassDB::bind_method(D_METHOD("stop_engine_sound"), &mf_vehicle_body::stop_engine_sound);
 
     // setters and getters
+    ClassDB::bind_method(D_METHOD("get_wheel_list"), &mf_vehicle_body::get_wheel_list);
     ClassDB::bind_method(D_METHOD("set_max_steer", "steering_amount"), &mf_vehicle_body::set_max_steer);
     ClassDB::bind_method(D_METHOD("get_max_steer"), &mf_vehicle_body::get_max_steer);
     ClassDB::bind_method(D_METHOD("set_front_brake_bias", "bias_amount"), &mf_vehicle_body::set_front_brake_bias);
@@ -600,6 +602,10 @@ void mf_vehicle_body::_bind_methods(void) {
     BIND_ENUM_CONSTANT(FWD);
     BIND_ENUM_CONSTANT(RWD);
     BIND_ENUM_CONSTANT(AWD);
+}
+
+Dictionary mf_vehicle_body::get_wheel_list(void) {
+    return wheel_list;
 }
 
 void mf_vehicle_body::set_max_steer(real_t steering_amount) {
