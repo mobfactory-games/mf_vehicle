@@ -277,6 +277,7 @@ void mf_vehicle_wheel::_notification(int p_what) {
 
                 body = cb;
                 cb->wheel_data.push_back(this);
+                cb->wheel_list[get_name()] = cb->wheel_data.size() -1;
             }
         break;
 
@@ -499,6 +500,7 @@ real_t mf_vehicle_wheel::get_wheel_mass(void) {
 
 void mf_vehicle_wheel::set_tire_radius(real_t radius) {
     tire_radius = radius;
+    update_gizmo();
 }
 
 real_t mf_vehicle_wheel::get_tire_radius(void) {

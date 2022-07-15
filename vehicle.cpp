@@ -19,8 +19,10 @@ mf_vehicle_body::mf_vehicle_body(void) {
     susp_comp.push_back(real_t(0.5));
     susp_comp.push_back(real_t(0.5));
 
-    for (int i = 0; i < wheel_data.capacity(); i++)
+    /*for (int i = 0; i < wheel_data.size(); i++) {
         wheel_list[wheel_data[i]->get_name()] = i;
+        OS::get_singleton()->print("%ls: %d\n", String(wheel_data[i]->get_name()).c_str(), i);
+    }*/
 
     if (wheel_data.empty() != true)
         wheel_radius = wheel_data[int(wheel_list["wheel_front_left"])]->tire_radius;
