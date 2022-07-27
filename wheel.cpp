@@ -88,7 +88,7 @@ real_t mf_vehicle_wheel::apply_forces(real_t opposite_comp, real_t delta, String
     local_vel = get_global_transform().get_basis().xform_inv((get_global_transform().origin - prev_pos) / delta);
     z_vel = -local_vel.z;
     Vector2 planar_vect = Vector2(local_vel.x, local_vel.z).normalized();
-    prev_pos = get_global_transform().origin;
+    prev_pos = get_global_transform().origin.normalized();
 
     // suspension
     if (is_colliding())
@@ -278,6 +278,8 @@ void mf_vehicle_wheel::_notification(int p_what) {
                 body = cb;
                 cb->wheel_data.push_back(this);
                 cb->wheel_list[get_name()] = cb->wheel_data.size() -1;
+                if (get_name() == String("wheel_front_left"))
+                    cb->set_wheel_radius(tire_radius);
             }
         break;
 

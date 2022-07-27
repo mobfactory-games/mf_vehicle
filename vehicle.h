@@ -133,10 +133,10 @@ class mf_vehicle_body:public RigidBody {
         real_t r_split = real_t(0.5);
         real_t f_split = real_t(0.5);
 
-        real_t steering_amount = real_t(0);
+        real_t steering_amount = real_t(.3);
 
         real_t speedo = real_t(0);
-        real_t wheel_radius = real_t(0);
+        real_t wheel_radius = real_t(0.3);
         Array susp_comp = Array();
 
         real_t avg_rear_spin = real_t(0);
