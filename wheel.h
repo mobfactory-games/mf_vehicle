@@ -23,6 +23,7 @@ class mf_vehicle_wheel:public RayCast {
             CURVE_BASED_FORMULA
         };
 
+        void init(void);
         // Naming these the same as the functions they get called im.
         void process(real_t delta);
         void physics_process(real_t delta);
@@ -94,9 +95,9 @@ class mf_vehicle_wheel:public RayCast {
         real_t spring_curr_length = real_t(spring_length);
 
         mf_vehicle_body *body = nullptr;
-        CollisionShape collider;
-        KinematicBody wheel_body;
-        MeshInstance wheel_mesh;
+        CollisionShape *collider = nullptr;
+        KinematicBody *wheel_body = nullptr;
+        MeshInstance *wheel_mesh = nullptr;
 
     protected:
         String get_configuration_warning() const;

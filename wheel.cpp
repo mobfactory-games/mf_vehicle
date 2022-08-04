@@ -8,16 +8,22 @@
 #include "math.h"
 
 mf_vehicle_wheel::mf_vehicle_wheel(void) {
+}
+
+void mf_vehicle_wheel::init(void) {
     if (body == nullptr) {
-        // print error message about null body
+        OS::get_singleton()->print("wheel has no body\n");
         return;
     }
+
+    OS::get_singleton()->print("Found wheel: %ls\n", String(get_name()).c_str());
 
     real_t nominal_load = body->get_weight() * real_t(0.25);
     wheel_moment = real_t(0.5) * wheel_mass * Math::pow(tire_radius, real_t(2));
     set_cast_to(Vector3(0, -1, 0) * (spring_length + tire_radius));
 
-    Ref<CylinderShape> cylinder = collider.get_shape();
+    Ref<CylinderShape> cylinder = collider->get_shape();
+
     cylinder->set_radius(tire_radius - real_t(0.2));
     cylinder->set_height(tire_width);
 
@@ -280,6 +286,13 @@ void mf_vehicle_wheel::_notification(int p_what) {
                 cb->wheel_list[get_name()] = cb->wheel_data.size() -1;
                 if (get_name() == String("wheel_front_left"))
                     cb->set_wheel_radius(tire_radius);
+
+                if (!collider) {
+                    Node *collider_node = get_node(NodePath("wheel_body/CollisionShape"));
+                    if (collider_node != NULL)
+                        //collider = collider_node->cast_to<CollisionShape>();
+                        collider = Object::cast_to<CollisionShape>(collider_node);
+                }
             }
         break;
 
@@ -300,6 +313,7 @@ void mf_vehicle_wheel::steer(real_t input, real_t max_steer) {
 }
 
 void mf_vehicle_wheel::_bind_methods(void) {
+    ClassDB::bind_method(D_METHOD("init"), &mf_vehicle_wheel::init);
     ClassDB::bind_method(D_METHOD("process", "delta"), &mf_vehicle_wheel::process);
     ClassDB::bind_method(D_METHOD("physics_process", "delta"), &mf_vehicle_wheel::physics_process);
     ClassDB::bind_method(D_METHOD("get_peak_pacejka", "yload", "tire_stiff", "C", "friction_coeff", "E"), &mf_vehicle_wheel::get_peak_pacejka);
