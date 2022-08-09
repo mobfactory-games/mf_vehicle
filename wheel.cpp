@@ -68,13 +68,13 @@ real_t mf_vehicle_wheel::pacejka(real_t slip, real_t B, real_t C, real_t D, real
 }
 
 void mf_vehicle_wheel::process(real_t delta) {
-    wheel_mesh.rotate_x(Math::wrapf((double)-spin * (double)delta, (double)0, Math_TAU));
+    wheel_mesh->rotate_x(Math::wrapf((double)-spin * (double)delta, (double)0, Math_TAU));
     if (z_vel > 2.0)
         calc_tire_wear(delta, y_force);
 }
 
 void mf_vehicle_wheel::physics_process(real_t delta) {
-    wheel_body.get_transform().origin = Vector3(0, -1, 0) * spring_curr_length;
+    wheel_body->get_transform().origin = Vector3(0, -1, 0) * spring_curr_length;
 }
 
 void mf_vehicle_wheel::calc_tire_wear(real_t delta, real_t yload) {
@@ -292,6 +292,18 @@ void mf_vehicle_wheel::_notification(int p_what) {
                     if (collider_node != NULL)
                         //collider = collider_node->cast_to<CollisionShape>();
                         collider = Object::cast_to<CollisionShape>(collider_node);
+                }
+
+                if (wheel_body == nullptr) {
+                    Node *kinematic_node = get_node(NodePath("wheel_body"));
+                    if (kinematic_node == nullptr)
+                        wheel_body = Object::cast_to<KinematicBody>(kinematic_node);
+                }
+
+                if (wheel_mesh == nullptr) {
+                    Node *mesh_instance = get_node(NodePath("wheel_body/wheel_mesh"));
+                    if (mesh_instance == nullptr)
+                        wheel_mesh = Object::cast_to<MeshInstance>(mesh_instance);
                 }
             }
         break;

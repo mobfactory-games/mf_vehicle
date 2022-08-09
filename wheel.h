@@ -96,7 +96,7 @@ class mf_vehicle_wheel:public RayCast {
 
         mf_vehicle_body *body = nullptr;
         CollisionShape *collider = nullptr;
-        KinematicBody *wheel_body = nullptr;
+        Ref<KinematicBody> wheel_body = nullptr;
         MeshInstance *wheel_mesh = nullptr;
 
     protected:
